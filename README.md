@@ -35,7 +35,7 @@ The system consists of 4 core microservices communicating synchronously, sharing
 - Build the customer profile service with Jakarta Bean Validation.
 - Implement strict business rules (e.g., rejecting duplicate PAN/Aadhaar/emails) and Role-Based Access Control (@PreAuthorize).
 
-### [ ] Day 3: Orchestration (`account-opening-service`)
+### [x] Day 3: Orchestration (`account-opening-service`)
 - Build the core orchestration service with an explicit state machine for application transitions.
 - Wire up `OpenFeign` to communicate synchronously with the `customer-service`.
 
