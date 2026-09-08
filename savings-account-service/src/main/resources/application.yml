@@ -1,12 +1,12 @@
 server:
-  port: 8083
+  port: 8084
 
 spring:
   application:
-    name: account-opening-service
+    name: savings-account-service
 
   datasource:
-    url: jdbc:postgresql://localhost:5432/account_db
+    url: jdbc:postgresql://localhost:5432/savings_db
     username: postgres
     password: password
     driver-class-name: org.postgresql.Driver
@@ -18,20 +18,14 @@ spring:
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
-        default_schema: account_db
+        default_schema: savings_db
         format_sql: true
 
   flyway:
     enabled: true
-    schemas: account_db
+    schemas: savings_db
     locations: classpath:db/migration
     baseline-on-migrate: true
-
-services:
-  customer-service:
-    url: http://localhost:8082
-  savings-account-service:
-    url: http://localhost:8084
 
 jwt:
   secret: 404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970
@@ -53,5 +47,5 @@ management:
 
 logging:
   level:
-    com.bank.account: DEBUG
+    com.bank.savings: DEBUG
     org.springframework.security: INFO

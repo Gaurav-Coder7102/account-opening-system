@@ -31,7 +31,7 @@ The system consists of 4 core microservices communicating synchronously, sharing
 - Built the `authentication-service` with endpoints for registration, login, token refresh, and logout. 
 - Integrated Spring Security, BCrypt password hashing, and Flyway database migrations for User and RefreshToken entities.
 
-### [ ] Day 2: Domain Service #1 (`customer-service`)
+### [x] Day 2: Domain Service #1 (`customer-service`)
 - Build the customer profile service with Jakarta Bean Validation.
 - Implement strict business rules (e.g., rejecting duplicate PAN/Aadhaar/emails) and Role-Based Access Control (@PreAuthorize).
 
@@ -39,7 +39,7 @@ The system consists of 4 core microservices communicating synchronously, sharing
 - Build the core orchestration service with an explicit state machine for application transitions.
 - Wire up `OpenFeign` to communicate synchronously with the `customer-service`.
 
-### [ ] Day 4: Domain Service #2 (`savings-account-service`)
+### [x] Day 4: Domain Service #2 (`savings-account-service`)
 - Build the savings account generation service.
 - Implement a thread-safe, non-sequential account number generator using database sequences.
 - Wire `account-opening-service` to call `savings-account-service` on approval.

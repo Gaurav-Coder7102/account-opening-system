@@ -16,23 +16,23 @@ The **Banking Account Opening System (AOS)** is an enterprise-grade, microservic
 ## 🏛️ 2. Architecture & Design Principles
 
 ```
-                              +-------------------------+
-                              |      API Gateway        |
-                              |  (Orchestrator / Client)|
-                              +------------+------------+
-                                           |
-                 +-------------------------+-------------------------+
-                 |                         |                         |
-                 v                         v                         v
-     +-----------------------+ +-----------------------+ +-----------------------+
-     | authentication-service| |    customer-service   | |account-opening-service|
-     |      (Port 8081)      | |      (Port 8082)      | |      (Port 8083)      |
-     +-----------+-----------+ +-----------+-----------+ +-----------+-----------+
-                 |                         |                         ^
-                 v                         v                         | (OpenFeign Sync)
-         [ auth_db Postgres ]     [ customer_db Postgres ]  +--------+
-                                                            |
-                                                   [ account_db Postgres ]
+                               +-------------------------+
+                               |      API Gateway        |
+                               |  (Orchestrator / Client)|
+                               +------------+------------+
+                                            |
+                 +--------------------------+--------------------------+--------------------------+
+                 |                          |                          |                          |
+                 v                          v                          v                          v
+     +-----------------------+  +-----------------------+  +-----------------------+  +-----------------------+
+     | authentication-service|  |    customer-service   |  |account-opening-service|  |savings-account-service|
+     |      (Port 8081)      |  |      (Port 8082)      |  |      (Port 8083)      |  |      (Port 8084)      |
+     +-----------+-----------+  +-----------+-----------+  +-----------+-----------+  +-----------+-----------+
+                 |                          |                          |                          |
+                 v                          v                          v (OpenFeign)              v
+         [ auth_db Postgres ]      [ customer_db Postgres ]            +---------------> [ savings_db Postgres ]
+                                                                       v
+                                                           [ account_db Postgres ]
 ```
 
 ### Key Architectural Principles:
@@ -208,10 +208,25 @@ account-opening-system/
 
 ---
 
-### 🚀 E. Planned Microservices (Roadmap)
-1. **`savings-account-service`** (Domain Service - Day 4):
-   * Thread-safe, non-sequential savings account number generation using database sequences.
-   * Manages account status and initial deposit balance.
+### 💰 E. `savings-account-service` (Day 4 Implementation)
+* **Port**: `8084`
+* **Database**: `savings_db`
+* **Purpose**: Manages savings account creation with thread-safe account number generation using PostgreSQL sequence `savings_db.savings_account_seq`, balance operations, and account status management.
+* **Key Features**:
+  * Atomically generates non-sequential 10-digit account numbers (`1000000000 + nextval('savings_db.savings_account_seq')`).
+  * Prevents duplicate account provisioning for the same application ID (`DuplicateAccountException`).
+  * Supports credit/debit operations on balances (`CREDIT`, `DEBIT`) with `INSUFFICIENT_FUNDS` validation.
+  * Synchronously provisioned by `account-opening-service` via OpenFeign upon application approval (`APPROVED` → `ACCOUNT_CREATED`).
+* **Core Endpoints**:
+  * `POST /api/v1/savings-accounts` — Create savings account (Internal/Feign/Admin).
+  * `GET /api/v1/savings-accounts/{id}` — Retrieve account details by ID.
+  * `GET /api/v1/savings-accounts/account-number/{accountNumber}` — Retrieve account details by Account Number.
+  * `GET /api/v1/savings-accounts/customer/{customerId}` — Retrieve accounts for customer.
+  * `GET /api/v1/savings-accounts/application/{applicationId}` — Retrieve account created for application.
+  * `PATCH /api/v1/savings-accounts/{id}/status` — Update status (`ACTIVE`, `DORMANT`, `CLOSED`).
+  * `POST /api/v1/savings-accounts/{id}/balance` — Credit or debit account balance.
+* **Flyway Migrations**:
+  * `V1__create_savings_accounts_table.sql`: `savings_db.savings_accounts` table and PostgreSQL sequence `savings_account_seq`.
 
 ---
 
@@ -221,7 +236,7 @@ account-opening-system/
 * **Container Name**: `aos_postgres`
 * **Image**: `postgres:16-alpine`
 * **Host Port**: `5432`
-* **Databases/Schemas**: `auth_db`, `customer_db`, `account_db`
+* **Databases/Schemas**: `auth_db`, `customer_db`, `account_db`, `savings_db`
 * **Credentials**: `postgres` / `password`
 
 ---
@@ -269,11 +284,16 @@ mvn clean install
   ```bash
   mvn -pl account-opening-service spring-boot:run
   ```
+* **Savings Account Service**:
+  ```bash
+  mvn -pl savings-account-service spring-boot:run
+  ```
 
 ### 4. Interactive Swagger UI Documentation
 * **Authentication Service API Docs**: `http://localhost:8081/swagger-ui.html`
 * **Customer Service API Docs**: `http://localhost:8082/swagger-ui.html`
 * **Account Opening Service API Docs**: `http://localhost:8083/swagger-ui.html`
+* **Savings Account Service API Docs**: `http://localhost:8084/swagger-ui.html`
 
 ---
 
@@ -293,7 +313,13 @@ mvn clean install
   - Integrated Spring Cloud OpenFeign (`CustomerClient`) for synchronous customer existence & `VERIFIED` KYC validation.
   - Flyway migration `V1__create_account_applications_table.sql`.
   - Comprehensive unit tests (`AccountApplicationServiceTest`).
-- [ ] **Day 4: Savings Account Generation (`savings-account-service`)**
+- [x] **Day 4: Savings Account Generation (`savings-account-service`)**
+  - Built `savings-account-service` module (Port 8084).
+  - Thread-safe, sequence-backed 10-digit account number generation.
+  - Balance operations (credit/debit) and status management.
+  - OpenFeign integration in `account-opening-service` for auto-provisioning on application approval (`APPROVED` → `ACCOUNT_CREATED`).
+  - Flyway migration `V1__create_savings_accounts_table.sql`.
+  - Comprehensive unit tests (`SavingsAccountServiceTest`).
 - [ ] **Day 5: Containerization & Docker Compose**
 - [ ] **Day 6: CI/CD Pipeline & Kubernetes Manifests**
 - [ ] **Day 7: AWS EKS Deployment**

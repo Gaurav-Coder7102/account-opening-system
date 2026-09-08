@@ -31,7 +31,7 @@
         <module>authentication-service</module>
         <module>customer-service</module>
         <module>account-opening-service</module>
-        <!-- <module>savings-account-service</module> -->
+        <module>savings-account-service</module>
     </modules>
 
     <dependencyManagement>

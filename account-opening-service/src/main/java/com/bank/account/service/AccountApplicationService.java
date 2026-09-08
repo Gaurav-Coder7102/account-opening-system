@@ -1,6 +1,7 @@
 package com.bank.account.service;
 
 import com.bank.account.client.CustomerClient;
+import com.bank.account.client.SavingsAccountClient;
 import com.bank.account.dto.*;
 import com.bank.account.entity.AccountApplication;
 import com.bank.account.entity.ApplicationStatus;
@@ -24,6 +25,7 @@ public class AccountApplicationService {
 
     private final AccountApplicationRepository repository;
     private final CustomerClient customerClient;
+    private final SavingsAccountClient savingsAccountClient;
 
     @Transactional
     public ApplicationResponse createApplication(CreateApplicationRequest request) {
@@ -88,6 +90,12 @@ public class AccountApplicationService {
 
         AccountApplication updated = repository.save(app);
         log.info("Application {} updated to status {}", app.getApplicationNumber(), target);
+
+        // On ACCOUNT_CREATED transition: provision savings account via Feign
+        if (target == ApplicationStatus.ACCOUNT_CREATED) {
+            provisionSavingsAccount(updated);
+        }
+
         return mapToResponse(updated);
     }
 
@@ -132,6 +140,32 @@ public class AccountApplicationService {
             throw new InvalidStateTransitionException(
                     String.format("Invalid status transition from '%s' to '%s'.", current, target)
             );
+        }
+    }
+
+    /**
+     * Calls savings-account-service via OpenFeign to provision a savings account
+     * once the application reaches ACCOUNT_CREATED state.
+     */
+    private void provisionSavingsAccount(AccountApplication app) {
+        try {
+            CreateSavingsAccountRequest savingsRequest = CreateSavingsAccountRequest.builder()
+                    .customerId(app.getCustomerId())
+                    .userId(app.getUserId())
+                    .applicationId(app.getId())
+                    .accountType(app.getAccountType().name())
+                    .initialBalance(app.getInitialDeposit())
+                    .remarks("Auto-provisioned from application: " + app.getApplicationNumber())
+                    .build();
+
+            ApiResponse<SavingsAccountDto> response = savingsAccountClient.provisionAccount(savingsRequest);
+            if (response != null && response.isSuccess() && response.getData() != null) {
+                log.info("Savings account '{}' provisioned for application '{}'",
+                        response.getData().getAccountNumber(), app.getApplicationNumber());
+            }
+        } catch (Exception ex) {
+            log.warn("Could not auto-provision savings account for application '{}': {}",
+                    app.getApplicationNumber(), ex.getMessage());
         }
     }
 

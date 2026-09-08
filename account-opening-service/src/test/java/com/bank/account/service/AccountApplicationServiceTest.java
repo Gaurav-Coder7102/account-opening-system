@@ -1,6 +1,7 @@
 package com.bank.account.service;
 
 import com.bank.account.client.CustomerClient;
+import com.bank.account.client.SavingsAccountClient;
 import com.bank.account.dto.*;
 import com.bank.account.entity.AccountApplication;
 import com.bank.account.entity.AccountType;
@@ -31,6 +32,9 @@ class AccountApplicationServiceTest {
 
     @Mock
     private CustomerClient customerClient;
+
+    @Mock
+    private SavingsAccountClient savingsAccountClient;
 
     @InjectMocks
     private AccountApplicationService service;
