@@ -70,71 +70,39 @@ The **Banking Account Opening System (AOS)** is an enterprise-grade, microservic
 account-opening-system/
 ├── pom.xml                        # Parent Multi-Module Maven POM (with Spring Cloud BOM)
 ├── README.md                      # High-level overview & 7-Day Roadmap
-├── docker-compose-db.yml          # PostgreSQL 16 Docker Compose setup
+├── docker-compose.yml             # Full Ecosystem Docker Compose (Postgres + 4 Services)
+├── docker-compose-db.yml          # PostgreSQL 16 standalone Docker Compose setup
+├── .dockerignore                  # Docker context build exclusion rules
 ├── PROJECT_CONTEXT.md             # Complete technical context & reference
+├── init-db/
+│   └── 01-init-databases.sql      # Multi-database initializer for PostgreSQL
 │
 ├── common-lib/                    # Shared Kernel Module
 │   ├── pom.xml
 │   └── src/main/java/com/bank/common/
-│       ├── dto/
-│       │   └── ApiResponse.java   # Standardized JSON response wrapper
-│       ├── exception/
-│       │   ├── BusinessException.java
-│       │   └── GlobalExceptionHandler.java
-│       └── security/
-│           ├── JwtUtil.java       # JWT generation, validation & claims
-│           └── JwtAuthenticationFilter.java # Spring Security Filter
+│       ├── dto/ApiResponse.java
+│       ├── exception/ (BusinessException.java, GlobalExceptionHandler.java)
+│       └── security/ (JwtUtil.java, JwtAuthenticationFilter.java)
 │
 ├── authentication-service/        # Auth Service (Port 8081)
+│   ├── Dockerfile                 # Multi-stage Docker build
 │   ├── pom.xml
-│   └── src/main/
-│       ├── java/com/bank/auth/
-│       │   ├── config/SecurityConfig.java
-│       │   ├── controller/AuthController.java
-│       │   ├── dto/ (LoginRequest, RegisterRequest, TokenResponse, UserResponse)
-│       │   ├── entity/ (User, RefreshToken)
-│       │   ├── exception/ (UserAlreadyExistsException)
-│       │   ├── repository/ (UserRepository, RefreshTokenRepository)
-│       │   └── service/ (AuthService, CustomUserDetailsService)
-│       └── resources/
-│           ├── application.yml
-│           └── db/migration/
-│               ├── V1__create_users_table.sql
-│               └── V2__create_refresh_tokens_table.sql
+│   └── src/
 │
 ├── customer-service/              # Customer & KYC Domain Service (Port 8082)
+│   ├── Dockerfile                 # Multi-stage Docker build
 │   ├── pom.xml
-│   └── src/main/
-│       ├── java/com/bank/customer/
-│       │   ├── config/ (SecurityConfig.java, SwaggerConfig.java)
-│       │   ├── controller/CustomerController.java
-│       │   ├── dto/ (CreateCustomerRequest, CustomerResponse, UpdateKycRequest)
-│       │   ├── entity/Customer.java (KycStatus enum: PENDING, VERIFIED, REJECTED)
-│       │   ├── exception/ (CustomerAlreadyExistsException, CustomerNotFoundException, CustomerExceptionHandler)
-│       │   ├── repository/CustomerRepository.java
-│       │   ├── service/CustomerService.java
-│       │   └── validation/ (ValidPan, PanValidator, ValidAadhaar, AadhaarValidator)
-│       └── resources/
-│           ├── application.yml
-│           └── db/migration/
-│               └── V1__create_customers_table.sql
+│   └── src/
 │
-└── account-opening-service/       # Application Orchestration & State Machine Service (Port 8083)
+├── account-opening-service/       # Application Orchestration Service (Port 8083)
+│   ├── Dockerfile                 # Multi-stage Docker build
+│   ├── pom.xml
+│   └── src/
+│
+└── savings-account-service/       # Savings Account Service (Port 8084)
+    ├── Dockerfile                 # Multi-stage Docker build
     ├── pom.xml
-    └── src/main/
-        ├── java/com/bank/account/
-        │   ├── client/CustomerClient.java (OpenFeign Client to customer-service)
-        │   ├── config/ (SecurityConfig.java, SwaggerConfig.java)
-        │   ├── controller/AccountApplicationController.java
-        │   ├── dto/ (CreateApplicationRequest, UpdateStatusRequest, ApplicationResponse, CustomerDto)
-        │   ├── entity/ (AccountApplication, ApplicationStatus, AccountType)
-        │   ├── exception/ (InvalidStateTransitionException, ApplicationNotFoundException, AccountExceptionHandler)
-        │   ├── repository/AccountApplicationRepository.java
-        │   └── service/AccountApplicationService.java (State Machine & Feign logic)
-        └── resources/
-            ├── application.yml
-            └── db/migration/
-                └── V1__create_account_applications_table.sql
+    └── src/
 ```
 
 ---
@@ -320,6 +288,10 @@ mvn clean install
   - OpenFeign integration in `account-opening-service` for auto-provisioning on application approval (`APPROVED` → `ACCOUNT_CREATED`).
   - Flyway migration `V1__create_savings_accounts_table.sql`.
   - Comprehensive unit tests (`SavingsAccountServiceTest`).
-- [ ] **Day 5: Containerization & Docker Compose**
+- [x] **Day 5: Containerization & Docker Compose**
+  - Multi-stage Dockerfiles for all 4 microservices with non-root security.
+  - Idempotent PostgreSQL multi-database initialization script (`01-init-databases.sql`).
+  - Full ecosystem orchestration via `docker-compose.yml` with healthchecks and internal networking.
+  - Configured Actuator endpoints and Feign URL environment variable overrides.
 - [ ] **Day 6: CI/CD Pipeline & Kubernetes Manifests**
 - [ ] **Day 7: AWS EKS Deployment**

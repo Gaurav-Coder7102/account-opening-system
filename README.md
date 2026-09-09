@@ -44,9 +44,10 @@ The system consists of 4 core microservices communicating synchronously, sharing
 - Implement a thread-safe, non-sequential account number generator using database sequences.
 - Wire `account-opening-service` to call `savings-account-service` on approval.
 
-### [ ] Day 5: Dockerization
-- Write multi-stage Dockerfiles for all 4 services.
-- Create a comprehensive `docker-compose.yml` to run the complete ecosystem locally with PostgreSQL.
+### [x] Day 5: Dockerization
+- Write multi-stage Dockerfiles for all 4 services (`authentication-service`, `customer-service`, `account-opening-service`, `savings-account-service`).
+- Implement automated PostgreSQL multi-database init script (`init-db/01-init-databases.sql`).
+- Create a comprehensive root `docker-compose.yml` orchestrating all 4 microservices + PostgreSQL with health checks, environment configuration, and service networking.
 
 ### [ ] Day 6: CI/CD & Kubernetes
 - Build a GitHub Actions CI/CD pipeline to build, test, and push Docker images.
@@ -62,24 +63,49 @@ The system consists of 4 core microservices communicating synchronously, sharing
 
 ## How to Run Locally
 
-### Prerequisites
-- Docker & Docker Compose
-- Java 17+
-- Maven
+### Option A: Complete Ecosystem with Docker Compose (Recommended)
+Start the entire stack (PostgreSQL + all 4 microservices):
+```bash
+docker compose up -d --build
+```
 
-### Steps
-1. **Start the Database**
+Check running services & health:
+```bash
+docker compose ps
+```
+
+To view logs across all containers:
+```bash
+docker compose logs -f
+```
+
+To stop all services:
+```bash
+docker compose down
+```
+
+### Option B: Run Standalone Database + Local Spring Boot Services
+1. **Start the Database**:
    ```bash
    docker compose -f docker-compose-db.yml up -d
    ```
-2. **Build the Project**
+2. **Build the Project**:
    ```bash
    mvn clean install
    ```
-3. **Run a Service (e.g., Authentication)**
+3. **Run Services Individually**:
    ```bash
    mvn -pl authentication-service spring-boot:run
+   mvn -pl customer-service spring-boot:run
+   mvn -pl account-opening-service spring-boot:run
+   mvn -pl savings-account-service spring-boot:run
    ```
-4. **API Documentation**
-   When a service is running, access Swagger UI at:
-   `http://localhost:<port>/swagger-ui.html`
+
+### 4. Service Endpoints & Swagger UI
+| Microservice | Port | Actuator Health | Swagger UI |
+| :--- | :--- | :--- | :--- |
+| **authentication-service** | `8081` | `http://localhost:8081/actuator/health` | `http://localhost:8081/swagger-ui.html` |
+| **customer-service** | `8082` | `http://localhost:8082/actuator/health` | `http://localhost:8082/swagger-ui.html` |
+| **account-opening-service** | `8083` | `http://localhost:8083/actuator/health` | `http://localhost:8083/swagger-ui.html` |
+| **savings-account-service** | `8084` | `http://localhost:8084/actuator/health` | `http://localhost:8084/swagger-ui.html` |
+

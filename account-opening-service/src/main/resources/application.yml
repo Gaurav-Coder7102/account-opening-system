@@ -29,9 +29,9 @@ spring:
 
 services:
   customer-service:
-    url: http://localhost:8082
+    url: ${SERVICES_CUSTOMER_SERVICE_URL:http://localhost:8082}
   savings-account-service:
-    url: http://localhost:8084
+    url: ${SERVICES_SAVINGS_ACCOUNT_SERVICE_URL:http://localhost:8084}
 
 jwt:
   secret: 404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970
