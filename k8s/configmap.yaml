@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: aos-config
+  namespace: aos
+  labels:
+    app.kubernetes.io/part-of: aos
+data:
+  POSTGRES_HOST: "postgres-service"
+  POSTGRES_PORT: "5432"
+  AUTH_DB_URL: "jdbc:postgresql://postgres-service:5432/auth_db"
+  CUSTOMER_DB_URL: "jdbc:postgresql://postgres-service:5432/customer_db"
+  ACCOUNT_DB_URL: "jdbc:postgresql://postgres-service:5432/account_db"
+  SAVINGS_DB_URL: "jdbc:postgresql://postgres-service:5432/savings_db"
+  SERVICES_CUSTOMER_SERVICE_URL: "http://customer-service:8082"
+  SERVICES_SAVINGS_ACCOUNT_SERVICE_URL: "http://savings-account-service:8084"

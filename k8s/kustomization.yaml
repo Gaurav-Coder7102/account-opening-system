@@ -1,0 +1,18 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: aos
+
+resources:
+  - namespace.yaml
+  - configmap.yaml
+  - secrets.yaml
+  - postgres/postgres-pvc.yaml
+  - postgres/postgres-init-configmap.yaml
+  - postgres/postgres-deployment.yaml
+  - postgres/postgres-service.yaml
+  - services/authentication-service.yaml
+  - services/customer-service.yaml
+  - services/account-opening-service.yaml
+  - services/savings-account-service.yaml
+  - ingress.yaml

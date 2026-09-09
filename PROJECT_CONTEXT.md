@@ -68,6 +68,26 @@ The **Banking Account Opening System (AOS)** is an enterprise-grade, microservic
 
 ```
 account-opening-system/
+├── .github/
+│   └── workflows/
+│       └── ci-cd.yml              # GitHub Actions CI/CD Pipeline
+├── k8s/                           # Kubernetes Manifests
+│   ├── namespace.yaml             # Dedicated 'aos' Namespace
+│   ├── configmap.yaml             # Shared ConfigMap (DB URLs, service URLs)
+│   ├── secrets.yaml               # Shared Secrets (DB password, JWT secret)
+│   ├── ingress.yaml               # NGINX Ingress rules
+│   ├── kustomization.yaml         # Kustomize entrypoint (kubectl apply -k k8s/)
+│   ├── postgres/                  # PostgreSQL Database manifests
+│   │   ├── postgres-pvc.yaml      # PersistentVolumeClaim (1Gi)
+│   │   ├── postgres-init-configmap.yaml # Multi-database bootstrap script
+│   │   ├── postgres-deployment.yaml     # Postgres 16 Deployment & probes
+│   │   └── postgres-service.yaml        # Postgres ClusterIP Service
+│   └── services/                  # Microservices Deployments & Services
+│       ├── authentication-service.yaml  # Deployment (2 replicas) + Service
+│       ├── customer-service.yaml        # Deployment (2 replicas) + Service
+│       ├── account-opening-service.yaml # Deployment (2 replicas) + Service
+│       └── savings-account-service.yaml # Deployment (2 replicas) + Service
+│
 ├── pom.xml                        # Parent Multi-Module Maven POM (with Spring Cloud BOM)
 ├── README.md                      # High-level overview & 7-Day Roadmap
 ├── docker-compose.yml             # Full Ecosystem Docker Compose (Postgres + 4 Services)
@@ -293,5 +313,9 @@ mvn clean install
   - Idempotent PostgreSQL multi-database initialization script (`01-init-databases.sql`).
   - Full ecosystem orchestration via `docker-compose.yml` with healthchecks and internal networking.
   - Configured Actuator endpoints and Feign URL environment variable overrides.
-- [ ] **Day 6: CI/CD Pipeline & Kubernetes Manifests**
+- [x] **Day 6: CI/CD Pipeline & Kubernetes Manifests**
+  - Built GitHub Actions CI/CD workflow (`.github/workflows/ci-cd.yml`) with automated Maven test verification and Docker build caching.
+  - Production-ready Kubernetes manifests in `k8s/` (`namespace.yaml`, `configmap.yaml`, `secrets.yaml`, `ingress.yaml`, `kustomization.yaml`).
+  - Database manifests with PersistentVolumeClaim (`postgres-pvc.yaml`), init script ConfigMap, and Deployment/Service.
+  - Microservices Deployments (2 replicas, Actuator readiness/liveness probes, resource requests/limits) and ClusterIP Services.
 - [ ] **Day 7: AWS EKS Deployment**

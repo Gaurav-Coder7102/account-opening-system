@@ -1,0 +1,50 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: aos-ingress
+  namespace: aos
+  labels:
+    app.kubernetes.io/name: aos-ingress
+    app.kubernetes.io/part-of: aos
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    nginx.ingress.kubernetes.io/ssl-redirect: "false"
+spec:
+  rules:
+    - http:
+        paths:
+          # Authentication Service
+          - path: /api/v1/auth
+            pathType: Prefix
+            backend:
+              service:
+                name: authentication-service
+                port:
+                  number: 8081
+
+          # Customer Service
+          - path: /api/v1/customers
+            pathType: Prefix
+            backend:
+              service:
+                name: customer-service
+                port:
+                  number: 8082
+
+          # Account Opening Orchestration Service
+          - path: /api/v1/applications
+            pathType: Prefix
+            backend:
+              service:
+                name: account-opening-service
+                port:
+                  number: 8083
+
+          # Savings Account Service
+          - path: /api/v1/savings-accounts
+            pathType: Prefix
+            backend:
+              service:
+                name: savings-account-service
+                port:
+                  number: 8084

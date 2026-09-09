@@ -49,15 +49,45 @@ The system consists of 4 core microservices communicating synchronously, sharing
 - Implement automated PostgreSQL multi-database init script (`init-db/01-init-databases.sql`).
 - Create a comprehensive root `docker-compose.yml` orchestrating all 4 microservices + PostgreSQL with health checks, environment configuration, and service networking.
 
-### [ ] Day 6: CI/CD & Kubernetes
-- Build a GitHub Actions CI/CD pipeline to build, test, and push Docker images.
-- Write Kubernetes manifests (`Deployment`, `Service`, `ConfigMap`, `Secret`, `Ingress`).
-- Deploy to a local `kind` cluster.
+### [x] Day 6: CI/CD & Kubernetes
+- Built automated GitHub Actions CI/CD pipeline (`.github/workflows/ci-cd.yml`) with Maven multi-module testing and Docker build caching.
+- Created production-ready Kubernetes manifests in `k8s/` (`namespace.yaml`, `configmap.yaml`, `secrets.yaml`, `ingress.yaml`, `kustomization.yaml`).
+- Configured PostgreSQL Stateful/Deployment with PersistentVolumeClaim (`postgres-pvc.yaml`) and database bootstrap init script.
+- Configured Deployments for all 4 microservices with Actuator liveness/readiness probes, resource limits, and ClusterIP Services.
 
 ### [ ] Day 7: AWS Deployment
 - Push Docker images to Amazon ECR.
 - Provision an Amazon EKS cluster using `eksctl`.
 - Deploy Kubernetes manifests to EKS and expose the system via a public LoadBalancer.
+
+---
+
+## Deploying to Kubernetes
+
+### Prerequisites
+- Running Kubernetes cluster (Minikube, `kind`, Docker Desktop K8s, or cloud EKS)
+- `kubectl` CLI installed
+
+### Deploying the Complete Stack
+Deploy all resources into the `aos` namespace using Kustomize:
+```bash
+kubectl apply -k k8s/
+```
+
+Check status of all pods, services, and PVCs:
+```bash
+kubectl get all,pvc,ingress -n aos
+```
+
+View pod logs (e.g. Account Opening Service):
+```bash
+kubectl logs -n aos -l app.kubernetes.io/name=account-opening-service -f
+```
+
+To delete the deployment:
+```bash
+kubectl delete -k k8s/
+```
 
 ---
 

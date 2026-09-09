@@ -1,0 +1,95 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: account-opening-service
+  namespace: aos
+  labels:
+    app.kubernetes.io/name: account-opening-service
+    app.kubernetes.io/part-of: aos
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: account-opening-service
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: account-opening-service
+        app.kubernetes.io/part-of: aos
+    spec:
+      containers:
+        - name: account-opening-service
+          image: aos-account-opening-service:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8083
+              name: http
+          env:
+            - name: SPRING_DATASOURCE_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: aos-config
+                  key: ACCOUNT_DB_URL
+            - name: SPRING_DATASOURCE_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: aos-secrets
+                  key: POSTGRES_USER
+            - name: SPRING_DATASOURCE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: aos-secrets
+                  key: POSTGRES_PASSWORD
+            - name: SERVICES_CUSTOMER_SERVICE_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: aos-config
+                  key: SERVICES_CUSTOMER_SERVICE_URL
+            - name: SERVICES_SAVINGS_ACCOUNT_SERVICE_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: aos-config
+                  key: SERVICES_SAVINGS_ACCOUNT_SERVICE_URL
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: aos-secrets
+                  key: JWT_SECRET
+          resources:
+            requests:
+              cpu: "200m"
+              memory: "256Mi"
+            limits:
+              cpu: "500m"
+              memory: "512Mi"
+          readinessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8083
+            initialDelaySeconds: 25
+            periodSeconds: 10
+            timeoutSeconds: 3
+          livenessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8083
+            initialDelaySeconds: 40
+            periodSeconds: 15
+            timeoutSeconds: 3
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: account-opening-service
+  namespace: aos
+  labels:
+    app.kubernetes.io/name: account-opening-service
+    app.kubernetes.io/part-of: aos
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: account-opening-service
+  ports:
+    - port: 8083
+      targetPort: 8083
+      name: http
